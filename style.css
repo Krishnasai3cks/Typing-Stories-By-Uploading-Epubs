@@ -1,16 +1,19 @@
 :root {
-    --bg-color: #f8f9fa;
-    --text-color: #212529;
+    --bg-color: #f4f6f8;
+    --text-color: #333;
     --primary-color: #0d6efd;
     --primary-hover: #0b5ed7;
-    --border-color: #dee2e6;
-    --correct-color: #28a745;
-    --error-color: #dc3545;
-    --active-bg: #e9ecef;
+    --border-color: #ccc;
+    
+    /* Typeracer Colors */
+    --text-pending: #555;
+    --text-correct: #28a745;
+    --bg-incorrect: #dc3545;
+    --text-incorrect: #ffffff;
 }
 
 body {
-    font-family: system-ui, -apple-system, sans-serif;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
@@ -22,53 +25,67 @@ body {
 
 header { text-align: center; margin-bottom: 20px; }
 
-main { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 20px; }
+main { width: 100%; max-width: 900px; display: flex; flex-direction: column; gap: 15px; }
 
-.upload-section {
-    background: white; padding: 20px; border: 2px dashed var(--border-color);
-    border-radius: 8px; text-align: center;
+.controls-section {
+    background: white; padding: 15px; border: 1px solid var(--border-color);
+    border-radius: 8px; display: flex; flex-direction: column; gap: 15px; align-items: center;
 }
 
-.button-group { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding: 10px 0; }
+.button-group { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 
 button {
     background-color: var(--primary-color); color: white; border: none;
-    padding: 10px 18px; border-radius: 6px; cursor: pointer;
-    font-size: 15px; font-weight: 500; transition: 0.2s;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: 0.2s;
 }
-
 button:hover { background-color: var(--primary-hover); }
-button:disabled { background-color: #6c757d; cursor: not-allowed; }
 
 .viewer {
     background: white; border: 1px solid var(--border-color); border-radius: 8px;
-    padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    display: flex; flex-direction: column; gap: 20px;
+    padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px;
 }
 
 #stats-bar {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 1.2rem; font-weight: bold; padding-bottom: 15px;
-    border-bottom: 1px solid var(--border-color);
+    font-size: 1.2rem; font-weight: bold; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);
 }
 
-#chapter-controls { display: flex; gap: 10px; }
+#chapter-controls { display: flex; gap: 10px; align-items: center; font-size: 14px; font-weight: normal; }
 
+/* --- TYPING TEXT STYLES --- */
 #viewer-content {
-    font-size: 22px; line-height: 1.8; max-height: 400px; overflow-y: auto;
+    font-size: 24px; 
+    line-height: 1.8; 
+    height: 350px; 
+    overflow-y: hidden;
     padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    position: relative;
 }
 
-/* Typing specific styles */
-.word { padding: 2px 4px; border-radius: 4px; transition: background 0.1s; }
-.word.correct { color: var(--correct-color); }
-.word.active { background-color: var(--active-bg); border-bottom: 3px solid var(--primary-color); }
-.word.error { background-color: #f8d7da; color: var(--error-color); border-bottom: 3px solid var(--error-color); }
+.word { 
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.pending { color: var(--text-pending); }
+.correct { color: var(--text-correct); }
+.incorrect { 
+    background-color: var(--bg-incorrect); 
+    color: var(--text-incorrect); 
+    border-radius: 2px; 
+}
+
+.word.completed { color: var(--text-correct); }
+.word.active { background-color: #e9ecef; border-radius: 4px; padding: 0 2px; }
+
+/* --- INPUT STYLES --- */
+.input-container { border-top: 1px solid var(--border-color); padding-top: 15px; }
 
 #typing-input {
-    width: 100%; padding: 15px; font-size: 20px; border: 2px solid var(--border-color);
-    border-radius: 8px; outline: none; transition: border-color 0.2s;
+    width: 100%; box-sizing: border-box; padding: 15px; font-size: 20px; 
+    border: 2px solid var(--border-color); border-radius: 6px; outline: none;
+    font-family: 'Courier New', Courier, monospace;
 }
-
 #typing-input:focus { border-color: var(--primary-color); }
-#typing-input.input-error { border-color: var(--error-color); background-color: #f8d7da; }
+#typing-input.error-shake { border-color: var(--bg-incorrect); background-color: #fdf2f2; }

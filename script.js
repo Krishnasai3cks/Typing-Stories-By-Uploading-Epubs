@@ -1,7 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     loadDefaultStories();
-    document.getElementById('file-upload').addEventListener('change', handleFileUpload);
-    document.getElementById('typing-input').addEventListener('input', handleTyping);
+    
+    const fileInput = document.getElementById('file-upload');
+    if(fileInput) fileInput.addEventListener('change', handleFileUpload);
+    
+    const typingInput = document.getElementById('typing-input');
+    typingInput.addEventListener('input', handleInput);
+    typingInput.addEventListener('keydown', handleKeyDown);
     
     document.getElementById('prev-chapter').addEventListener('click', () => loadEpubChapter(currentEpubSpineIndex - 1));
     document.getElementById('next-chapter').addEventListener('click', () => loadEpubChapter(currentEpubSpineIndex + 1));
@@ -11,41 +16,38 @@ document.addEventListener('DOMContentLoaded', () => {
 let wordsArray = [];
 let currentWordIndex = 0;
 let startTime = null;
-let keystrokes = 0;
+let correctKeystrokes = 0;
 let wpmInterval = null;
 
-// EPUB specific variables
 let currentEpubBook = null;
 let currentEpubSpineIndex = 0;
 
-// --- Loading Files ---
+// --- Load Files ---
 async function loadDefaultStories() {
     const container = document.getElementById('story-selector');
     try {
-        const response = await fetch(`stories.json?t=${new Date().getTime()}`);
+        const response = await fetch(`stories.json?t=${Date.now()}`);
         if (!response.ok) throw new Error();
         const stories = await response.json();
         container.innerHTML = ''; 
         
         stories.forEach(story => {
-            // PDF is excluded because PDFs cannot be parsed cleanly for text typing
             if (story.type === 'pdf') return; 
-            
-            const button = document.createElement('button');
-            button.textContent = `${story.title} (${story.type.toUpperCase()})`;
-            button.addEventListener('click', () => openStory(story.filename, story.type));
-            container.appendChild(button);
+            const btn = document.createElement('button');
+            btn.textContent = story.title;
+            btn.addEventListener('click', () => openStory(story.filename, story.type));
+            container.appendChild(btn);
         });
-    } catch (error) {
-        container.innerHTML = `<p style="color: red;">Error loading library.</p>`;
+    } catch (e) {
+        container.innerHTML = `<p style="color: red;">Failed to load library.</p>`;
     }
 }
 
 function handleFileUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
-
     const filename = file.name.toLowerCase();
+    
     if (filename.endsWith('.txt')) {
         const reader = new FileReader();
         reader.onload = (e) => startTypingEngine(e.target.result);
@@ -58,27 +60,26 @@ function handleFileUpload(event) {
 }
 
 async function openStory(filepath, filetype) {
-    document.getElementById('viewer-content').innerHTML = '<p class="placeholder-text">Loading...</p>';
+    document.getElementById('viewer-content').innerHTML = '<p class="placeholder-text">Parsing file...</p>';
     if (filetype === 'txt') {
         try {
-            const response = await fetch(filepath);
+            const response = await fetch(`${filepath}?t=${Date.now()}`);
             const text = await response.text();
             startTypingEngine(text);
         } catch (e) {
-            alert("Error loading TXT.");
+            alert("Error loading text file.");
         }
     } else if (filetype === 'epub') {
         openEpub(filepath);
     }
 }
 
-// --- EPUB Handling ---
+// --- EPUB Logic ---
 function openEpub(source) {
     document.getElementById('chapter-controls').style.display = 'flex';
     currentEpubBook = ePub(source);
     
     currentEpubBook.loaded.spine.then(spine => {
-        // Start at the first meaningful chapter (index 0 is usually cover/metadata)
         loadEpubChapter(0);
     });
 }
@@ -87,115 +88,133 @@ async function loadEpubChapter(index) {
     const spine = await currentEpubBook.loaded.spine;
     if (index < 0 || index >= spine.length) return;
     
+    document.getElementById('viewer-content').innerHTML = '<p class="placeholder-text">Extracting Chapter Text...</p>';
     currentEpubSpineIndex = index;
+    document.getElementById('chapter-indicator').innerText = `Chapter ${index}`;
+    
     const item = spine.get(index);
     const doc = await item.load(currentEpubBook.load.bind(currentEpubBook));
     
-    // Extract raw text from the chapter's HTML body
-    const text = doc.body.textContent || doc.body.innerText;
+    const rawText = doc.body.textContent || doc.body.innerText;
+    const cleanText = rawText.replace(/\s+/g, ' ').trim();
     
-    if (text.trim().length === 0) {
-        // If chapter is empty (e.g., just an image), auto-skip to next
+    if (cleanText.length < 15) {
         loadEpubChapter(index + 1);
         return;
     }
     
-    startTypingEngine(text);
+    startTypingEngine(cleanText);
 }
 
-// --- Typing Engine ---
+// --- Typing Engine (Typeracer Logic) ---
 function startTypingEngine(rawText) {
     clearInterval(wpmInterval);
     document.getElementById('wpm-display').innerText = "WPM: 0";
     
-    // Clean up text: remove extra spaces, treat hyphens and em dashes as word boundaries if needed
-    // We'll split simply by spaces for a standard Typeracer feel
-    const cleanText = rawText.replace(/\s+/g, ' ').trim();
-    wordsArray = cleanText.split(' ');
+    wordsArray = rawText.trim().split(' ').filter(w => w.length > 0);
     currentWordIndex = 0;
     startTime = null;
-    keystrokes = 0;
+    correctKeystrokes = 0;
 
     const viewer = document.getElementById('viewer-content');
     viewer.innerHTML = '';
     
     wordsArray.forEach((word, index) => {
-        const wordSpan = document.createElement('span');
-        wordSpan.innerText = word + " "; // Add space back for formatting
-        wordSpan.className = 'word';
-        wordSpan.id = `word-${index}`;
-        viewer.appendChild(wordSpan);
+        const span = document.createElement('span');
+        span.id = `word-${index}`;
+        span.className = 'word pending';
+        span.innerText = word;
+        viewer.appendChild(span);
     });
 
     const inputArea = document.getElementById('typing-input');
     inputArea.disabled = false;
     inputArea.value = '';
+    inputArea.classList.remove('error-shake');
     inputArea.focus();
     
-    updateWordHighlight();
+    renderCurrentWord();
 }
 
-function handleTyping(e) {
+function handleInput(e) {
     if (!startTime) {
         startTime = new Date();
         wpmInterval = setInterval(calculateWPM, 1000);
     }
+    renderCurrentWord();
+}
 
+function handleKeyDown(e) {
     const inputArea = e.target;
-    const typedValue = inputArea.value;
     const currentWord = wordsArray[currentWordIndex];
-    const currentWordSpan = document.getElementById(`word-${currentWordIndex}`);
 
-    // Check if the user pressed Space at the end of the correct word
-    if (typedValue.endsWith(' ')) {
-        const typedWord = typedValue.trim();
-        if (typedWord === currentWord) {
-            // Word correct! Advance to next word.
-            keystrokes += typedWord.length + 1; // +1 for the space
-            currentWordSpan.className = 'word correct';
-            currentWordIndex++;
-            inputArea.value = '';
-            
-            if (currentWordIndex >= wordsArray.length) {
-                finishTyping();
-            } else {
-                updateWordHighlight();
-            }
+    if (e.key === ' ' || e.code === 'Space') {
+        if (inputArea.value !== currentWord) {
+            e.preventDefault();
+            inputArea.classList.add('error-shake');
+            setTimeout(() => inputArea.classList.remove('error-shake'), 200);
+            return;
         }
-        return;
-    }
 
-    // Live validation
-    if (currentWord.startsWith(typedValue)) {
-        currentWordSpan.className = 'word active';
-        inputArea.classList.remove('input-error');
-    } else {
-        currentWordSpan.className = 'word error';
-        inputArea.classList.add('input-error');
+        e.preventDefault(); 
+        correctKeystrokes += currentWord.length + 1;
+        
+        const wordSpan = document.getElementById(`word-${currentWordIndex}`);
+        wordSpan.className = 'word completed';
+        wordSpan.innerHTML = currentWord;
+        
+        currentWordIndex++;
+        inputArea.value = '';
+        
+        if (currentWordIndex >= wordsArray.length) {
+            finishTyping();
+        } else {
+            renderCurrentWord();
+        }
     }
 }
 
-function updateWordHighlight() {
-    if (currentWordIndex < wordsArray.length) {
-        const nextWord = document.getElementById(`word-${currentWordIndex}`);
-        nextWord.className = 'word active';
-        
-        // Auto-scroll the text area to keep the active word in view
-        nextWord.scrollIntoView({ behavior: 'smooth', block: 'center' });
+function renderCurrentWord() {
+    if (currentWordIndex >= wordsArray.length) return;
+
+    const currentWordSpan = document.getElementById(`word-${currentWordIndex}`);
+    const currentWord = wordsArray[currentWordIndex];
+    const typed = document.getElementById('typing-input').value;
+
+    let html = '';
+    const maxLength = Math.max(currentWord.length, typed.length);
+
+    for (let i = 0; i < maxLength; i++) {
+        if (i < typed.length) {
+            if (i < currentWord.length && typed[i] === currentWord[i]) {
+                html += `<span class="correct">${currentWord[i]}</span>`;
+            } else {
+                let charToShow = i < currentWord.length ? currentWord[i] : typed[i];
+                html += `<span class="incorrect">${charToShow}</span>`;
+            }
+        } else {
+            html += `<span class="pending">${currentWord[i]}</span>`;
+        }
     }
+
+    currentWordSpan.innerHTML = html;
+    currentWordSpan.className = 'word active';
+
+    currentWordSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 function calculateWPM() {
-    if (!startTime || keystrokes === 0) return;
+    if (!startTime || correctKeystrokes === 0) return;
     const now = new Date();
     const minutes = (now - startTime) / 60000;
-    // Standard WPM calculation: (characters / 5) / minutes
-    const wpm = Math.round((keystrokes / 5) / minutes);
+    
+    const wpm = Math.round((correctKeystrokes / 5) / minutes);
     document.getElementById('wpm-display').innerText = `WPM: ${wpm}`;
 }
 
 function finishTyping() {
     clearInterval(wpmInterval);
-    document.getElementById('typing-input').disabled = true;
-    document.getElementById('typing-input').value = 'Chapter Complete!';
+    const inputArea = document.getElementById('typing-input');
+    inputArea.disabled = true;
+    inputArea.value = 'Chapter Complete!';
 }
