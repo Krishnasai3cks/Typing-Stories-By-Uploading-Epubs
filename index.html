@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Story Reader</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>My Default Stories</h1>
+        <p>Select a story from the library to begin reading.</p>
+    </header>
+    
+    <main>
+        <!-- The JS will inject the story buttons here -->
+        <section id="story-selector" class="button-group">
+            <p class="loading-text">Loading library...</p>
+        </section>
+        
+        <!-- The selected file will render here -->
+        <section id="story-display" class="viewer">
+            <div id="viewer-content">
+                <p class="placeholder-text">Select a story to open it here.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
