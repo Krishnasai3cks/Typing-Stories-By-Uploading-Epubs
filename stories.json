@@ -1,17 +1,17 @@
 [
   {
     "title": "The Time Machine",
-    "filename": "default stories/story1.epub",
+    "filename": "default-stories/story1.epub",
     "type": "epub"
   },
   {
     "title": "Project Gutenberg Sample",
-    "filename": "default stories/story2.pdf",
+    "filename": "default-stories/story2.pdf",
     "type": "pdf"
   },
   {
     "title": "Quick Notes",
-    "filename": "default stories/story3.txt",
+    "filename": "default-stories/story3.txt",
     "type": "txt"
   }
 ]
