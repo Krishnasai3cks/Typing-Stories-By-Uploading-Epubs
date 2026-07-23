@@ -1,0 +1,37 @@
+name: Commit email check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-commit-email:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify commit author and committer emails
+        run: |
+          chmod +x scripts/verify-commit-email.sh
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+            head="${{ github.event.pull_request.head.sha }}"
+            commits=$(git rev-list "${base}..${head}")
+          else
+            commits=$(git rev-list "${{ github.event.before }}..${{ github.sha }}" 2>/dev/null || git rev-list -1 "${{ github.sha }}")
+          fi
+
+          if [ -z "$commits" ]; then
+            commits="${{ github.sha }}"
+          fi
+
+          for commit in $commits; do
+            echo "Checking $commit"
+            VERIFY_COMMIT="$commit" ./scripts/verify-commit-email.sh
+          done

@@ -1,0 +1,34 @@
+---
+description: Restrict git commits to the Krishnasai3cks GitHub identity only
+alwaysApply: true
+---
+
+# Git commit identity (required)
+
+Only create commits for this repository using the **Krishnasai3cks** identity.
+
+## Allowed author/committer emails
+
+- `krishnasai3cks@gmail.com`
+- `*+Krishnasai3cks@users.noreply.github.com` (GitHub noreply for that account)
+- `Krishnasai3cks@users.noreply.github.com`
+
+## Forbidden
+
+- Do not commit with `krishnaatd@...` or any other email/account.
+- Do not change global git config.
+- Before committing, verify this repo uses an allowed email:
+
+```bash
+git config user.email
+./scripts/verify-commit-email.sh
+```
+
+## If the email is wrong (repo-local only)
+
+```bash
+git config user.email "krishnasai3cks@gmail.com"
+git config user.name "Krishnasai3cks"
+```
+
+Never push unless the user explicitly asks.

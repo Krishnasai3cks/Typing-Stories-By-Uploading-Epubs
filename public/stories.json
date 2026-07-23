@@ -1,0 +1,22 @@
+[
+  {
+    "title": "The Time Machine",
+    "filename": "default-stories/story1.epub",
+    "type": "epub"
+  },
+  {
+    "title": "Project Gutenberg Sample",
+    "filename": "default-stories/story2.pdf",
+    "type": "pdf"
+  },
+  {
+    "title": "Quick Notes",
+    "filename": "default-stories/story3.txt",
+    "type": "txt"
+  },
+  {
+    "title": "Pride And Prejudice",
+    "filename": "default-stories/moby_dick-The_Whale.epub",
+    "type": "epub"
+  }
+]
