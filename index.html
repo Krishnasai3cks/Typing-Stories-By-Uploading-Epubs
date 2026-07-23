@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Story Reader</title>
+    <title>Typing Stories App</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.5/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs/dist/epub.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>My Default Stories</h1>
-        <p>Select a story from the library or upload your own to begin reading.</p>
+        <h1>My Typing Stories</h1>
+        <p>Select a story, upload a file, and type along!</p>
     </header>
     
     <main>
         <section class="upload-section">
             <h2>Upload a Local Story</h2>
-            <input type="file" id="file-upload" accept=".txt,.pdf,.epub">
+            <input type="file" id="file-upload" accept=".txt,.epub">
         </section>
 
         <section id="story-selector" class="button-group">
@@ -23,9 +25,19 @@
         </section>
         
         <section id="story-display" class="viewer">
-            <div id="viewer-content">
-                <p class="placeholder-text">Select a story to open it here.</p>
+            <div id="stats-bar">
+                <span id="wpm-display">WPM: 0</span>
+                <div id="chapter-controls" style="display: none;">
+                    <button id="prev-chapter">Previous Chapter</button>
+                    <button id="next-chapter">Next Chapter</button>
+                </div>
             </div>
+
+            <div id="viewer-content">
+                <p class="placeholder-text">Select a story to begin typing.</p>
+            </div>
+
+            <input type="text" id="typing-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Start typing here..." disabled>
         </section>
     </main>
 
