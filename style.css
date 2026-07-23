@@ -19,7 +19,7 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 main {
@@ -30,12 +30,32 @@ main {
     gap: 20px;
 }
 
+/* New Upload Section Styles */
+.upload-section {
+    background: white;
+    padding: 20px;
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.upload-section h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: var(--text-color);
+}
+
+input[type="file"] {
+    font-size: 14px;
+}
+
 /* Button Container */
 .button-group {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
     justify-content: center;
+    padding: 10px 0;
 }
 
 button {
@@ -81,12 +101,12 @@ button:hover {
 
 .document-frame {
     width: 100%;
-    height: 700px; /* Gives the PDF plenty of room */
+    height: 700px;
     border: none;
 }
 
 .text-content {
-    white-space: pre-wrap; /* Ensures .txt line breaks are respected */
+    white-space: pre-wrap;
     line-height: 1.8;
     font-size: 16px;
     max-width: 700px;

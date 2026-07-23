@@ -9,16 +9,19 @@
 <body>
     <header>
         <h1>My Default Stories</h1>
-        <p>Select a story from the library to begin reading.</p>
+        <p>Select a story from the library or upload your own to begin reading.</p>
     </header>
     
     <main>
-        <!-- The JS will inject the story buttons here -->
+        <section class="upload-section">
+            <h2>Upload a Local Story</h2>
+            <input type="file" id="file-upload" accept=".txt,.pdf,.epub">
+        </section>
+
         <section id="story-selector" class="button-group">
             <p class="loading-text">Loading library...</p>
         </section>
         
-        <!-- The selected file will render here -->
         <section id="story-display" class="viewer">
             <div id="viewer-content">
                 <p class="placeholder-text">Select a story to open it here.</p>

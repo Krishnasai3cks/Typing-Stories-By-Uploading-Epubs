@@ -13,5 +13,10 @@
     "title": "Quick Notes",
     "filename": "default-stories/story3.txt",
     "type": "txt"
+  },
+  {
+    "title": "Pride And Prejudice",
+    "filename": "default-stories/PrideAndPrejudice.epub",
+    "type": "epub"
   }
 ]
