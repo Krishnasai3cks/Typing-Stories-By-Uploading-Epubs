@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { debug } from '../utils/debug.js';
-import { renderActiveWordHtml, wordsMatch } from '../utils/typingNormalize.js';
+import { normalizeAdvanceInput, renderActiveWordHtml, wordsMatch } from '../utils/typingNormalize.js';
 import { parseTypingText } from '../utils/textTokens.js';
 
 const IDLE_PAUSE_MS = 2000;
@@ -170,15 +170,18 @@ export default function TypingEngine({
   const handleInput = (event) => {
     if (isComplete) return;
     recordActivity();
-    setInputValue(event.target.value.replace(/[\r\n]/g, ''));
+    const nextValue = event.target.value.replace(/[\r\n]/g, '');
+    setInputValue(normalizeAdvanceInput(nextValue));
   };
 
   const tryAdvanceWord = (event) => {
     const currentWord = wordsArray[currentWordIndex];
-    if (!wordsMatch(currentWord, inputValue)) {
+    const typedValue = normalizeAdvanceInput(event.currentTarget?.value ?? inputValue);
+
+    if (!wordsMatch(currentWord, typedValue)) {
       debug.warn('Engine', 'Advance blocked — word mismatch:', {
         expected: currentWord,
-        typed: inputValue,
+        typed: typedValue,
         wordIndex: currentWordIndex,
       });
       event.preventDefault();
@@ -213,8 +216,8 @@ export default function TypingEngine({
 
     recordActivity();
 
-    const isSpace = event.key === ' ' || event.code === 'Space';
-    const isEnter = event.key === 'Enter';
+    const isSpace = event.key === ' ' || event.key === 'Spacebar' || event.code === 'Space';
+    const isEnter = event.key === 'Enter' || event.key === 'NumpadEnter';
     if (!isSpace && !isEnter) return;
 
     tryAdvanceWord(event);

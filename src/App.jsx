@@ -24,6 +24,20 @@ function getStoryId(source, story) {
   return 'unknown';
 }
 
+function getAssetUrl(path) {
+  const base = typeof import.meta.env.BASE_URL === 'string' && import.meta.env.BASE_URL
+    ? import.meta.env.BASE_URL
+    : '/';
+
+  try {
+    return new URL(path, base).toString();
+  } catch (error) {
+    const fallbackBase = typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}` : '/';
+    debug.warn('Assets', 'Invalid BASE_URL, using fallback base:', base, '->', fallbackBase);
+    return new URL(path, fallbackBase).toString();
+  }
+}
+
 export default function App() {
   const [stories, setStories] = useState([]);
   const [loadingStories, setLoadingStories] = useState(true);
@@ -48,9 +62,10 @@ export default function App() {
   const progressSaveTimer = useRef(null);
 
   useEffect(() => {
-    debug.log('Library', 'Fetching /stories.json...');
+    const libraryUrl = getAssetUrl('stories.json');
+    debug.log('Library', 'Fetching library:', libraryUrl);
 
-    fetch('/stories.json')
+    fetch(libraryUrl)
       .then((response) => {
         debug.log('Library', 'Response status:', response.status, response.statusText);
         if (!response.ok) throw new Error('Failed to load library.');
@@ -226,7 +241,7 @@ export default function App() {
 
     if (story.type === 'txt') {
       try {
-        const url = `/${story.filename}`;
+        const url = getAssetUrl(story.filename);
         debug.log('Story', 'Fetching text from:', url);
         const response = await fetch(url);
         debug.log('Story', 'Text fetch status:', response.status, response.statusText);
@@ -242,7 +257,7 @@ export default function App() {
     }
 
     if (story.type === 'epub') {
-      await openEpub(`/${story.filename}`, story);
+      await openEpub(getAssetUrl(story.filename), story);
     }
   };
 

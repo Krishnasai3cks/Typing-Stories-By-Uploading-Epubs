@@ -18,6 +18,10 @@ export function normalizeForTyping(text) {
   return expandEmDash(text).replace(/[\u2018\u2019]/g, STRAIGHT_APOSTROPHE);
 }
 
+export function normalizeAdvanceInput(text = '') {
+  return text.replace(/\r\n/g, '\n').replace(/\s+$/g, '').trimEnd();
+}
+
 export function wordsMatch(targetWord, typedWord) {
   if (typedWord === targetWord) return true;
   return typedWord === normalizeForTyping(targetWord);
